@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi App con Supabase</title>
-    <!-- Importar Supabase -->
+    <!-- Importar Supabase correctamente -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .container {
@@ -23,7 +23,6 @@
     <div class="container">
         <h1>Mi App con Supabase</h1>
         
-        <!-- Formulario para insertar datos -->
         <div>
             <h2>Agregar Nuevo Registro</h2>
             <input type="text" id="nombreInput" placeholder="Nombre">
@@ -31,7 +30,6 @@
             <button onclick="insertarDatos()">Guardar</button>
         </div>
 
-        <!-- Contenedor para mostrar datos -->
         <div class="data-container">
             <h2>Datos Guardados</h2>
             <button onclick="cargarDatos()">Actualizar Datos</button>
@@ -40,60 +38,71 @@
     </div>
 
     <script>
-        // Configura Supabase - REEMPLAZA CON TUS CREDENCIALES
-        const SUPABASE_URL = 'https://hdduhfwacjohpkttlcya.supabase.co'
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZHVoZndhY2pvaHBrdHRsY3lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4MDc1MDUsImV4cCI6MjA0NzM4MzUwNX0.4EBJc4CMc3hgRbE03S4nCI8_2UWCF9VV2LbUILjZtmE'
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+        // Crear el cliente de Supabase correctamente
+        const supabaseClient = supabase.createClient(
+            'https://hdduhfwacjohpkttlcya.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZHVoZndhY2pvaHBrdHRsY3lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE4MDc1MDUsImV4cCI6MjA0NzM4MzUwNX0.4EBJc4CMc3hgRbE03S4nCI8_2UWCF9VV2LbUILjZtmE'
+        );
 
         // Función para insertar datos
         async function insertarDatos() {
-            const nombre = document.getElementById('nombreInput').value
-            const descripcion = document.getElementById('descripcionInput').value
+            const nombre = document.getElementById('nombreInput').value;
+            const descripcion = document.getElementById('descripcionInput').value;
 
-            const { data, error } = await supabase
-                .from('tu_tabla')
-                .insert([
-                    { nombre: nombre, descripcion: descripcion }
-                ])
+            try {
+                const { data, error } = await supabaseClient
+                    .from('tu_tabla')
+                    .insert([
+                        { nombre: nombre, descripcion: descripcion }
+                    ]);
 
-            if (error) {
-                alert('Error al guardar: ' + error.message)
-                return
+                if (error) throw error;
+
+                alert('Datos guardados correctamente!');
+                cargarDatos();
+                document.getElementById('nombreInput').value = '';
+                document.getElementById('descripcionInput').value = '';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al guardar: ' + error.message);
             }
-
-            alert('Datos guardados correctamente!')
-            cargarDatos() // Actualizar la lista
-            // Limpiar inputs
-            document.getElementById('nombreInput').value = ''
-            document.getElementById('descripcionInput').value = ''
         }
 
         // Función para cargar datos
         async function cargarDatos() {
-            const { data, error } = await supabase
-                .from('tu_tabla')
-                .select('*')
+            try {
+                const { data, error } = await supabaseClient
+                    .from('tu_tabla')
+                    .select('*');
 
-            if (error) {
-                console.error('Error:', error)
-                return
+                if (error) throw error;
+
+                const resultadosDiv = document.getElementById('resultados');
+                resultadosDiv.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        resultadosDiv.innerHTML += `
+                            <div style="margin: 10px; padding: 10px; border: 1px solid #eee;">
+                                <h3>${item.nombre}</h3>
+                                <p>${item.descripcion}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    resultadosDiv.innerHTML = '<p>No hay datos para mostrar</p>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('resultados').innerHTML = 
+                    '<p>Error al cargar los datos: ' + error.message + '</p>';
             }
-
-            const resultadosDiv = document.getElementById('resultados')
-            resultadosDiv.innerHTML = ''
-
-            data.forEach(item => {
-                resultadosDiv.innerHTML += `
-                    <div style="margin: 10px; padding: 10px; border: 1px solid #eee;">
-                        <h3>${item.nombre}</h3>
-                        <p>${item.descripcion}</p>
-                    </div>
-                `
-            })
         }
 
         // Cargar datos al iniciar
-        cargarDatos()
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarDatos();
+        });
     </script>
 </body>
 </html>
